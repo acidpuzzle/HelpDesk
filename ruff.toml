@@ -1,0 +1,22 @@
+src = ["src"]
+
+exclude = [
+    "*/migrations",
+]
+
+[format]
+quote-style = "double"
+docstring-code-format = true
+indent-style = "space"
+line-ending = "lf"
+
+[lint]
+select = ["ALL"]
+
+ignore = [
+    "D105",  # Skipping docstrings in magic methods (__init__, etc.)
+    "D203",  # Conflicts with D211 (one-blank-line-before-class)
+    "D213",  # Conflicts with D212 (multi-line-summary-second-line)
+    "COM812", # RECOMMENDED: Ignore when using ruff format to avoid conflicts
+    "ISC001", # RECOMMENDED: Ignore when using ruff format
+]
