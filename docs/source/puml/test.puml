@@ -1,0 +1,96 @@
+@startuml
+skinparam defaultFontName Consolas
+skinparam nodesep 100
+skinparam ranksep 100
+
+namespace mixins.admin {
+    abstract class BaseModelAdmin {
+
+    }
+}
+
+namespace mixins.models {
+
+    abstract class BaseModel {
+        -- db fields --
+        + id: UUID
+        + created: datetime
+        + updated: datetime
+        --
+        + objects: Manager
+    }
+}
+
+namespace appticket.models {
+
+    class Ticket {
+        -- db fields --
+        + number: int
+        + title: str
+        + status: Status
+        --
+        + is_homo(name: str, ...) -> bool
+        - __method2() -> Ticket
+    }
+
+    class Message {
+        -- db fields --
+        + ticket: Ticket
+        + new_status: Status
+        + title: str
+        + private_comment: str
+        + public_comment: str
+    }
+
+    enum Status {
+        + NEW
+        + ACTIVE
+        + CLOSED
+        + ARCHIVE
+    }
+
+    stereotype NewTicket <proxy \n status==NEW> {
+    }
+
+    stereotype ActiveTicket <proxy \n status==ACTIVE> {
+    }
+
+    stereotype ClosedTicket <proxy \n status==CLOSED> {
+    }
+
+    stereotype ArchivedTicket <proxy \n status==ARCHIVE> {
+    }
+
+
+}
+
+namespace appticket.admin {
+    class NewTicketAdmin {
+    }
+
+    class ActiveTicketAdmin{
+    }
+
+    class ClosedTicketAdmin{
+    }
+
+    class ArchivedTicketAdmin{
+    }
+}
+
+BaseModel <|-- Ticket
+Ticket --> Status
+Ticket <|-- NewTicket
+Ticket <|-- ActiveTicket
+Ticket <|-- ClosedTicket
+Ticket <|-- ArchivedTicket
+BaseModel <|-- Message
+Message *- Ticket
+Message --> Status
+
+BaseModelAdmin <|-- NewTicketAdmin
+BaseModelAdmin <|-- ActiveTicketAdmin
+BaseModelAdmin <|-- ClosedTicketAdmin
+BaseModelAdmin <|-- ArchivedTicketAdmin
+
+@enduml

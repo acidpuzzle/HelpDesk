@@ -16,4 +16,4 @@ class AppticketConfig(AppConfig):
 
     def ready(self) -> None:
         """Post-Initialization Setup."""
-        self.verbose_name = _("Ticket")
+        self.verbose_name = _("Обращения")

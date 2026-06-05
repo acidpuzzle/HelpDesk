@@ -88,3 +88,9 @@ db.sqlite3
 
 ### Pycharm ###
 .idea
+
+# Java compiled files
+*.jar
+
+# files
+_trash
