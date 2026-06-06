@@ -14,6 +14,12 @@ line-ending = "lf"
 select = ["ALL"]
 
 ignore = [
+    "RUF001",  # CYRILLIC LETTER
+    "ANN001",  # Missing type annotation for function argument
+    "ANN002",  # Missing type annotation for `*args`
+    "ANN003",  # Missing type annotation for `**kwargs`
+    "ANN204",  # Missing return type annotation
+    "ARG002",  # Unused method argument: `request`
     "D104",  # Missing docstring in public package
     "D105",  # Skipping docstrings in magic methods (__init__, etc.)
     "D203",  # Conflicts with D211 (one-blank-line-before-class)

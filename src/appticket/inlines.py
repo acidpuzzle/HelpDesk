@@ -10,7 +10,6 @@ from django.forms import ModelForm
 from appticket.models import Event
 
 
-
 class EventInlineForm(ModelForm):
     class Meta:
         model = Event
@@ -22,7 +21,7 @@ class EventInlineForm(ModelForm):
         if self.instance and self.instance.pk:
             for field_name in ["type", "title", "comment"]:
                 if field_name in self.fields:
-                    self.fields[field_name].widget.attrs['readonly'] = True
+                    self.fields[field_name].widget.attrs["readonly"] = True
                     self.fields[field_name].disabled = True
 
 

@@ -132,7 +132,7 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-def get_app_list(self, request: HttpRequest, app_label: str | None=None) -> list[str]: # noqa: ANN001
+def get_app_list(self, request: HttpRequest, app_label: str | None=None) -> list[str]:
     """Return the installed apps that have been registered in admin.py."""
     app_dict = self._build_app_dict(request, app_label)
     return list(app_dict.values())

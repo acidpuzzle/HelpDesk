@@ -4,10 +4,10 @@ Copyright (c) 2026 Aleksey Pavlov, ProjectSupport LLC.
 email: a.pavlov@projectsupport.ru
 """
 
-from django.db import models, transaction
-from django.db.models import Q, Max
-from django.utils import timezone
 from django.conf import settings
+from django.db import models, transaction
+from django.db.models import Max
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from mixins.models import BaseModel
@@ -48,7 +48,7 @@ class Ticket(BaseModel):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name='tickets',
+        related_name="tickets",
         verbose_name = _("Исполнитель"),
         help_text = _("Назначить на пользователя"),
     )
@@ -163,12 +163,12 @@ class Event(BaseModel):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name='events',
+        related_name="events",
         verbose_name = _("Пользователь"),
     )
 
     class EventType(models.TextChoices):
-        """Device type."""
+        """Тип события."""
 
         COMMENT = "comment", _("Коментарий")
         CALL = "call", _("Звонок клиенту")

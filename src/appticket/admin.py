@@ -14,8 +14,8 @@ from appticket.models import (
     ActiveTicket,
     ArchivedTicket,
     ClosedTicket,
-    NewTicket,
     Event,
+    NewTicket,
     Ticket,
 )
 
@@ -32,9 +32,9 @@ class TicketAdminForm(ModelForm):
         super().__init__(*args, **kwargs)
 
         if self.instance and self.instance.pk:
-            for field_name in ["title", "detail",]:
+            for field_name in ["title", "detail"]:
                 if field_name in self.fields:
-                    self.fields[field_name].widget.attrs['readonly'] = True
+                    self.fields[field_name].widget.attrs["readonly"] = True
                     self.fields[field_name].disabled = True
 
 
@@ -70,8 +70,7 @@ class TicketAdmin(admin.ModelAdmin):
     #     return self.fields_to_add
 
     def has_add_permission(self, request):
-        """
-        Разрешить добавление обращений только в разделе новых обращений.
+        """Разрешить добавление обращений только в разделе новых обращений.
         :param request:
         :return: Bool
         """
