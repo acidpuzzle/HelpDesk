@@ -3,7 +3,7 @@
 Copyright (c) 2026 Aleksey Pavlov, ProjectSupport LLC.
 email: a.pavlov@projectsupport.ru
 """
-
+import uuid
 from datetime import datetime
 
 from django.db import models
@@ -15,16 +15,22 @@ class BaseModel(models.Model):
 
     Другие модели приложения должны наследоваться от этой модели.
     """
-
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
     created: datetime = models.DateTimeField(
         auto_now_add=True,
         editable=False,
+        db_index=True,
         verbose_name=_("Создан"),
         help_text=_("Дата создания"),
     )
     updated: datetime = models.DateTimeField(
         auto_now=True,
         editable=False,
+        db_index=True,
         verbose_name=_("Изменен"),
         help_text=_("Дата последнего изменения"),
     )
@@ -35,3 +41,7 @@ class BaseModel(models.Model):
         """Metaclass."""
 
         abstract = True
+
+    def is_adding(self):
+        """Добавление новой или нет."""
+        return self._state.adding

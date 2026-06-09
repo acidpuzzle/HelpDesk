@@ -21,18 +21,23 @@ from appticket.models import (
 
 
 class TicketAdminForm(ModelForm):
-    class Meta:
-        model = Ticket
-        fields = (
+    """Форма для обращения."""
+
+    frozen_fields = (
             "title",
             "detail",
+            "status",
         )
+
+    class Meta:
+        model = Ticket
+        fields = "__all__"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.instance and self.instance.pk:
-            for field_name in ["title", "detail"]:
+        if self.instance and not self.instance.is_adding():
+            for field_name in self.frozen_fields:
                 if field_name in self.fields:
                     self.fields[field_name].widget.attrs["readonly"] = True
                     self.fields[field_name].disabled = True
@@ -56,29 +61,14 @@ class TicketAdmin(admin.ModelAdmin):
         """Переопределение родительского метода, фильтрация по статусу обращения."""
         return super().get_queryset(request).filter(status=self.ticket_status)
 
-    # def get_readonly_fields(self, request, obj=None):
-    #     """
-    #     Hook for specifying custom readonly fields.
-    #     """
-    #     if obj:
-    #         return self.readonly_fields_exist
-    #     return self.readonly_fields_to_add
-    #
-    # def get_fields(self, request, obj=None):
-    #     if obj:
-    #         return self.fields_exist
-    #     return self.fields_to_add
-
     def has_add_permission(self, request):
-        """Разрешить добавление обращений только в разделе новых обращений.
-        :param request:
-        :return: Bool
-        """
+        """Разрешить добавление обращений только в разделе новых обращений."""
         if self.ticket_status == Ticket.Status.NEW:
             return True
         return False
 
     def has_delete_permission(self, request, obj=None):
+        """Не нужно удалять обращения."""
         return False
 
     def get_inlines(self, request, obj):
@@ -95,6 +85,17 @@ class TicketAdmin(admin.ModelAdmin):
 
             instance.save()
         formset.save_m2m()
+
+    creation_fields = (
+        "title",
+        "detail",
+    )
+
+    def get_fields(self, request, obj=None):
+        """Динамически определяет список полей в зависимости от создания/редактирования."""
+        if obj is None:
+            return self.creation_fields
+        return super().get_fields(request, obj)
 
 
 @admin.register(NewTicket)

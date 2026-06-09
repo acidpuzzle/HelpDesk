@@ -13,8 +13,18 @@ from django.utils.translation import gettext_lazy as _
 from mixins.models import BaseModel
 
 
+class TicketQueue(BaseModel):
+    """Очередь обращений."""
+
+    name: str = models.CharField(
+        max_length=255,
+        verbose_name=_("Название"),
+        help_text=_("Название очереди."),
+    )
+
+
 class Ticket(BaseModel):
-    """Ticket model."""
+    """Модель обращения."""
 
     number: int = models.PositiveBigIntegerField(
         editable=False,
@@ -27,10 +37,27 @@ class Ticket(BaseModel):
         help_text=_("Коротко о главном"),
     )
 
+    class Category(models.TextChoices):
+        """Катигории инцидентов."""
+
+        INCIDENT = "incident", _("Инцидент")
+        SERVICE = "service", _("Запрос на обслуживание")
+        CHANGE = "change", _("Запрос на изменение")
+
+    category: str = models.CharField(
+        max_length=10,
+        blank=True,
+        choices=Category,
+        default=Category.SERVICE,
+        verbose_name=_("Категория"),
+        help_text=_("Категория обращения"),
+    )
+
     class Status(models.TextChoices):
-        """Ticket status."""
+        """Статус обращения."""
 
         NEW = "new", _("Новый")
+        ASSIGNED = "assigned", _("Назначено")
         ACTIVE = "active", _("В работе")
         PAUSED = "paused", _("Приостановлена")
         CLOSED = "closed", _("Закрыта")
@@ -43,12 +70,21 @@ class Ticket(BaseModel):
         verbose_name=_("Статус"),
         help_text=_("Статус обращения"),
     )
+    initiator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="init_tickets",
+        verbose_name = _("Инициатор"),
+        help_text = _("Инициатор обращения."),
+    )
     executor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name="tickets",
+        related_name="execute_tickets",
         verbose_name = _("Исполнитель"),
         help_text = _("Назначить на пользователя"),
     )
@@ -57,7 +93,6 @@ class Ticket(BaseModel):
         verbose_name=_("Подробно"),
         help_text=_("Суть проблемы"),
     )
-    # другие поля...
 
     class Meta:
         """Metadata."""
@@ -65,35 +100,30 @@ class Ticket(BaseModel):
         verbose_name = _("Обращение")
         verbose_name_plural = _("Обращения")
 
-
     def save(self, *args, **kwargs):
-        if self._state.adding:
-            if not self.created:
-                self.created = timezone.now()
-
-            today = self.created.date()
-
-            date_prefix_str = self.created.strftime("%y%m%d")
-            date_prefix_int = int(date_prefix_str) * 1000
-
+        """Сохранение обращения."""
+        if self.is_adding:
             with transaction.atomic():
+                if not self.created:
+                    self.created = timezone.now()
+
+                today = self.created.date()
+                date_prefix_int = int(self.created.strftime("%y%m%d")) * 1000
+
                 max_number = (
                     Ticket.objects.select_for_update()
                     .filter(created__date=today)
                     .aggregate(max_num=Max("number"))["max_num"]
                 )
 
-                if max_number:
-                    self.number = max_number + 1
-                else:
-                    self.number = date_prefix_int + 1
+                self.number = max_number + 1 if max_number else date_prefix_int + 1
 
                 super().save(*args, **kwargs)
-        elif self.status == self.Status.NEW and self.executor:
-            self.status = self.Status.ACTIVE
-            super().save(*args, **kwargs)
-        else:
-            super().save(*args, **kwargs)
+
+        if self.status == self.Status.NEW and self.executor:
+            self.status = self.Status.ASSIGNED
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Обращение №{self.number} - {self.title}"
@@ -180,11 +210,6 @@ class Event(BaseModel):
         default=EventType.COMMENT,
         verbose_name=_("Тип события"),
         help_text=_("Выберите тип события"),
-    )
-    title = models.CharField(
-        max_length=255,
-        verbose_name=_("Заголовок"),
-        help_text=_("Коротко о главном"),
     )
     comment = models.TextField(
         blank=False,
