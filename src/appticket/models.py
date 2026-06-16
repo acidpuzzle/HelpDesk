@@ -121,7 +121,7 @@ class Ticket(BaseModel):
                 super().save(*args, **kwargs)
 
         if self.status == self.Status.NEW and self.executor:
-            self.status = self.Status.ASSIGNED
+            self.status = self.Status.ACTIVE
 
         super().save(*args, **kwargs)
 
