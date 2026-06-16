@@ -4,12 +4,10 @@ Copyright (c) 2026 Aleksey Pavlov, ProjectSupport LLC.
 email: a.pavlov@projectsupport.ru
 """
 
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.db.models import QuerySet
 from django.forms import ModelForm
 from django.http import HttpRequest
-from django.shortcuts import redirect
-from django.utils import timezone
 
 from appticket.inlines import EventStacked
 from appticket.models import (
@@ -29,6 +27,8 @@ class TicketAdminForm(ModelForm):
         "title",
         "detail",
         "status",
+        "initiator",
+        "executor",
     )
 
     class Meta:
@@ -56,6 +56,7 @@ class TicketAdmin(admin.ModelAdmin):
         "number",
         "title",
         "status",
+        "initiator",
         "executor",
     )
 
@@ -75,6 +76,11 @@ class TicketAdmin(admin.ModelAdmin):
         if obj:
             return self.inlines
         return ()
+    
+    def save_model(self, request, obj, form, change):
+        if obj and not obj.initiator:
+            obj.initiator = request.user
+        super().save_model(request, obj, form, change)
 
     def save_formset(self, request, form, formset, change) -> None:
         instances = formset.save(commit=False)

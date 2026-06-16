@@ -248,6 +248,7 @@ class Event(BaseModel):
             self.ticket.save()
         elif self.type == self.EventType.ACTIVE:
             self.ticket.status = Ticket.Status.ACTIVE
+            self.ticket.executor = self.user
             self.ticket.save()
 
         super().save(*args, **kwargs)
