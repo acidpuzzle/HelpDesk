@@ -76,8 +76,8 @@ class Ticket(BaseModel):
         blank=True,
         null=True,
         related_name="init_tickets",
-        verbose_name = _("Инициатор"),
-        help_text = _("Инициатор обращения."),
+        verbose_name=_("Инициатор"),
+        help_text=_("Инициатор обращения."),
     )
     executor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -85,8 +85,8 @@ class Ticket(BaseModel):
         blank=True,
         null=True,
         related_name="execute_tickets",
-        verbose_name = _("Исполнитель"),
-        help_text = _("Назначить на пользователя"),
+        verbose_name=_("Исполнитель"),
+        help_text=_("Назначить на пользователя"),
     )
     detail = models.TextField(
         blank=True,
@@ -100,7 +100,7 @@ class Ticket(BaseModel):
         verbose_name = _("Обращение")
         verbose_name_plural = _("Обращения")
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         """Сохранение обращения."""
         if self.is_adding:
             with transaction.atomic():
@@ -143,7 +143,7 @@ class NewTicket(Ticket):
 
         proxy = True
         verbose_name = _("Новое обращение")
-        verbose_name_plural = _("Новые обращения")
+        verbose_name_plural = _("Новые")
 
 
 class ActiveTicket(Ticket):
@@ -154,7 +154,18 @@ class ActiveTicket(Ticket):
 
         proxy = True
         verbose_name = _("Обращение в работе")
-        verbose_name_plural = _("Обращения в работе")
+        verbose_name_plural = _("В работе")
+
+
+class PausedTicket(Ticket):
+    """Paused ticket proxy model."""
+
+    class Meta:
+        """Metadata."""
+
+        proxy = True
+        verbose_name = _("Приостановленное обращение")
+        verbose_name_plural = _("Приостановленные")
 
 
 class ClosedTicket(Ticket):
@@ -165,7 +176,7 @@ class ClosedTicket(Ticket):
 
         proxy = True
         verbose_name = _("Закрытое обращение")
-        verbose_name_plural = _("Закрытые обращения")
+        verbose_name_plural = _("Закрытые")
 
 
 class ArchivedTicket(Ticket):
@@ -194,7 +205,7 @@ class Event(BaseModel):
         blank=True,
         null=True,
         related_name="events",
-        verbose_name = _("Пользователь"),
+        verbose_name=_("Пользователь"),
     )
 
     class EventType(models.TextChoices):
@@ -203,6 +214,7 @@ class Event(BaseModel):
         COMMENT = "comment", _("Коментарий")
         CALL = "call", _("Звонок клиенту")
         PAUSE = "pause", _("Приостановить")
+        ACTIVE = "active", _("В работу")
         CLOSE = "close", _("Закрыть")
 
     type: str = models.CharField(
@@ -227,10 +239,15 @@ class Event(BaseModel):
         formatted_date = self.created.strftime("%Y-%m-%d %H:%M:%S")
         return f"{self.user} от {formatted_date}"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         if self.type == self.EventType.CLOSE:
             self.ticket.status = Ticket.Status.CLOSED
             self.ticket.save()
+        elif self.type == self.EventType.PAUSE:
+            self.ticket.status = Ticket.Status.PAUSED
+            self.ticket.save()
+        elif self.type == self.EventType.ACTIVE:
+            self.ticket.status = Ticket.Status.ACTIVE
+            self.ticket.save()
 
         super().save(*args, **kwargs)
-

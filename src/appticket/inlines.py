@@ -35,7 +35,6 @@ class EventStacked(StackedInline):
     extra = 0
     ordering = ("created",)
 
-
     readonly_fields_exist = (
         "type",
         "comment",
@@ -57,7 +56,5 @@ class EventStacked(StackedInline):
         """Cannot be deleted."""
         return False
 
-    def has_add_permission(self, request, obj):
-        if obj.is_closed() or obj.is_archived():
-            return False
-        return True
+    def has_add_permission(self, request, obj) -> bool:
+        return not (obj.is_closed() or obj.is_archived())

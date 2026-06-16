@@ -4,10 +4,12 @@ Copyright (c) 2026 Aleksey Pavlov, ProjectSupport LLC.
 email: a.pavlov@projectsupport.ru
 """
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models import QuerySet
 from django.forms import ModelForm
 from django.http import HttpRequest
+from django.shortcuts import redirect
+from django.utils import timezone
 
 from appticket.inlines import EventStacked
 from appticket.models import (
@@ -16,7 +18,7 @@ from appticket.models import (
     ClosedTicket,
     Event,
     NewTicket,
-    Ticket,
+    Ticket, PausedTicket,
 )
 
 
@@ -24,10 +26,10 @@ class TicketAdminForm(ModelForm):
     """Форма для обращения."""
 
     frozen_fields = (
-            "title",
-            "detail",
-            "status",
-        )
+        "title",
+        "detail",
+        "status",
+    )
 
     class Meta:
         model = Ticket
@@ -61,13 +63,11 @@ class TicketAdmin(admin.ModelAdmin):
         """Переопределение родительского метода, фильтрация по статусу обращения."""
         return super().get_queryset(request).filter(status=self.ticket_status)
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request) -> bool:
         """Разрешить добавление обращений только в разделе новых обращений."""
-        if self.ticket_status == Ticket.Status.NEW:
-            return True
-        return False
+        return self.ticket_status == Ticket.Status.NEW
 
-    def has_delete_permission(self, request, obj=None):
+    def has_delete_permission(self, request, obj=None) -> bool:
         """Не нужно удалять обращения."""
         return False
 
@@ -76,7 +76,7 @@ class TicketAdmin(admin.ModelAdmin):
             return self.inlines
         return ()
 
-    def save_formset(self, request, form, formset, change):
+    def save_formset(self, request, form, formset, change) -> None:
         instances = formset.save(commit=False)
 
         for instance in instances:
@@ -104,6 +104,13 @@ class NewTicketAdmin(TicketAdmin):
 
     ticket_status = Ticket.Status.NEW
 
+    @admin.action(description="В работу")
+    def activate(self, request, queryset) -> None:
+        queryset.update(executor=request.user ,status=Ticket.Status.ACTIVE)
+        self.message_user(request, "Обращения взяты в работу.")
+
+    actions = [activate]
+
 
 @admin.register(ActiveTicket)
 class ActiveTicketAdmin(TicketAdmin):
@@ -111,12 +118,40 @@ class ActiveTicketAdmin(TicketAdmin):
 
     ticket_status = Ticket.Status.ACTIVE
 
+    @admin.action(description="Приостановить")
+    def pause(self, request, queryset) -> None:
+        queryset.update(status=Ticket.Status.PAUSED)
+        self.message_user(request, "Обращения успешно приостановленны.")
+
+    actions = [pause]
+
+
+@admin.register(PausedTicket)
+class PausedTicketAdmin(TicketAdmin):
+    """Active tickets."""
+
+    ticket_status = Ticket.Status.PAUSED
+
+    @admin.action(description="В работу")
+    def activate(self, request, queryset) -> None:
+        queryset.update(status=Ticket.Status.ACTIVE)
+        self.message_user(request, "Обращения успешно возвращены в работу.")
+
+    actions = [activate]
+
 
 @admin.register(ClosedTicket)
 class ClosedTicketAdmin(TicketAdmin):
     """Closed tickets."""
 
     ticket_status = Ticket.Status.CLOSED
+
+    @admin.action(description="Архивировать")
+    def archive(self, request, queryset) -> None:
+        queryset.update(status=Ticket.Status.ARCHIVED)
+        self.message_user(request, "Обращения успешно перемещены в архив.")
+
+    actions = [archive]
 
 
 @admin.register(ArchivedTicket)

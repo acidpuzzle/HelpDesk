@@ -3,6 +3,7 @@
 Copyright (c) 2026 Aleksey Pavlov, ProjectSupport LLC.
 email: a.pavlov@projectsupport.ru
 """
+
 import uuid
 from datetime import datetime
 
@@ -15,6 +16,7 @@ class BaseModel(models.Model):
 
     Другие модели приложения должны наследоваться от этой модели.
     """
+
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,

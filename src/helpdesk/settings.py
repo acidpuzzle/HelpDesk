@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-d(cfl(vfp(yt2=n31!qv2zm4%(^5byl&z99=#3qcud$+yak&mv" # noqa: S105
+SECRET_KEY = "django-insecure-d(cfl(vfp(yt2=n31!qv2zm4%(^5byl&z99=#3qcud$+yak&mv"  # noqa: S105
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -82,7 +82,7 @@ DATABASES = {
         "HOST": "127.0.0.1",
         "PORT": "5432",
         "NAME": "helpdesk",
-        "USER":  "helpdesk",
+        "USER": "helpdesk",
         "PASSWORD": "P@ssw0rd",
         "CONN_HEALTH_CHECKS": True,
     },
@@ -93,7 +93,7 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator", # noqa: E501
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",  # noqa: E501
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -132,9 +132,11 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-def get_app_list(self, request: HttpRequest, app_label: str | None=None) -> list[str]:
+
+def get_app_list(self, request: HttpRequest, app_label: str | None = None) -> list[str]:
     """Return the installed apps that have been registered in admin.py."""
     app_dict = self._build_app_dict(request, app_label)
     return list(app_dict.values())
+
 
 admin.AdminSite.get_app_list = get_app_list
